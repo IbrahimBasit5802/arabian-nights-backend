@@ -30,5 +30,9 @@ router.post('/addfloor', actions.addFloor)
 
 router.get('/getfloorinfo', actions.getFloorInfo)
 
+//
+
+router.get('/getusertype', actions.getUserType)
+
 
 module.exports = router

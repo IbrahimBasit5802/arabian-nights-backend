@@ -24,6 +24,12 @@ var userSchema = new Schema({
     password: {
         type: String,
         require: true
+    },
+    // either a Chef, Waiter or Manager
+    // Manager Option Can't be selected by employees frontend, only added manually
+    userType: {
+        type: String,
+        require: true
     }
 
     

@@ -1,5 +1,6 @@
 var User = require('../models/user')
 var Floor = require('../models/floors')
+var MenuItem = require('../models/menu_item')
 var jwt = require('jwt-simple')
 var config = require('../config/dbconfig')
 const { json } = require('body-parser')
@@ -14,7 +15,7 @@ var functions = {
     addNew: async (req, res) => {
 
 
-        if ((!req.body.name) || (!req.body.password) || (!req.body.email) || (!req.body.phone)) {
+        if ((!req.body.name) || (!req.body.password) || (!req.body.email) || (!req.body.phone) || (!req.body.userType)) {
             res.json({success: false, msg: "Enter the required fields"})
         }
         else {
@@ -33,7 +34,8 @@ var functions = {
                 name: req.body.name,
                 password: req.body.password,
                 email: req.body.email,
-                phone: req.body.phone
+                phone: req.body.phone,
+                userType: req.body.userType
             });
             newUser.save(function (e, newUser) {
                 if (e) {
@@ -112,6 +114,15 @@ var functions = {
         }
     },
 
+    getUserType: async (req, res) => {
+        let tempUser = await User.findOne({email: req.body.email})
+        if (!tempUser) {
+            return res.json({success: false, msg: "User not Found"})
+        }
+
+        return res.json({success: true, userType: tempUser.userType})
+    },
+
     getFloorInfo: async (req, res) => {
 
         let floorInfo = await Floor.findOne({floorNum: req.body.floorNum})
@@ -124,16 +135,55 @@ var functions = {
 
     },
 
-    // getAllFloors: async (req, res) => {
-    //     let allFloors = await Floor.find()
-    //     if (!allFloors) {
-    //         return res.json({success: false, msg: "No Floors have been added"})
-    //     }
+    getAllUsers: async (req, res) => {
+        var cursor = await User.find();
+        if (!cursor) {
+            return res.json({success: false, msg: "No Users Found"})
+        }
 
-    //     return res.json({success: true, allFloors.toJson()})
-    // }
+        return res.json({success: true, users: cursor})
+    },
 
+    getAllFloors: async (req, res) => {
+        var fl = await Floor.find()
+        if (!fl) {
+            return res.json({success: false, msg: "No Floors"})
+        } 
 
+        return res.json({success: true, floors: fl})
+    },
+
+    addMenuItem: async (req, res) => {
+        if (!req.body.name || !req.body.description || !req.body.category || !req.body.price) {
+            return res.json({success: false, msg: "Enter the required fields"})
+        }
+
+        var newItem = MenuItem({
+            name: req.body.name,
+            description: req.body.description,
+            category: req.body.category,
+            price: req.body.price,
+            picUrl: req.body.picUrl
+        })
+        newItem.save(function (e, newItem) {
+            if (e) {
+                return res.json({success: false, msg: "Failed to save"})
+            }
+            else {
+                return res.json({success: true, msg: "Successfully Saved"})
+            }
+        })
+    },
+
+    getMenuItem: async (req, res) => {
+
+        var cursor = await MenuItem.findOne({name: req.body.name})
+        if (!cursor) {
+            return res.json({success: false, msg: "Item not Found"})
+        }
+
+        return res.json({success: true, name: cursor.name, description: cursor.description, category: cursor.category, price: cursor.price, picUrl: cursor.picUrl})
+    }
 
  
 }
