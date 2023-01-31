@@ -3,6 +3,7 @@ var Floor = require('../models/floors')
 var MenuItem = require('../models/menu_item')
 var jwt = require('jwt-simple')
 var config = require('../config/dbconfig')
+var emailValidator = require('deep-email-validator')
 const { json } = require('body-parser')
 //const JWTT = require("jsonwebtoken");
 // const Token = require("../models/Token.model");
@@ -28,6 +29,30 @@ var functions = {
             }
             else if(ph) {
                 res.json({success: false, msg: "Phone Number already exists"})
+                return
+            }
+            var checkEmail = await emailValidator.validate(req.body.email)
+            var reason = ''
+            if (!checkEmail['valid']) {
+                if (checkEmail['reason'] == 'disposable') {
+                    reason = checkEmail['validators']['disposable']['reason']
+                }
+                else if (checkEmail['reason'] == 'typo') {
+                    reason = checkEmail['validators']['typo']['reason']
+                }
+                else if(checkEmail['reason'] == 'regex') {
+                    reason = checkEmail['validators']['regex']['reason']
+                }
+                else if(checkEmail['reason'] == 'mx') {
+                    reason = checkEmail['validators']['mx']['reason']
+                }
+                else if(checkEmail['reason'] == 'smtp') {
+                    reason = checkEmail['validators']['smtp']['reason']
+                }
+                else {
+                    reason = "Invalid Email"
+                }
+                res.json({success: false, msg: reason})
                 return
             }
             var newUser = User({
@@ -81,7 +106,7 @@ var functions = {
             var token = req.headers.authorization.split(' ')[1]
             var decodedToken = jwt.decode(token, config.secret)
 
-            return res.json({success: true, msg: "Hello" + decodedToken.name})
+            return res.json({success: true, name: decodedToken.name, email: decodedToken.email, phone: decodedToken.phone, userType: decodedToken.userType})
         }
         else {
             return res.json({success: false, msg: "No Headers"})
@@ -183,7 +208,14 @@ var functions = {
         }
 
         return res.json({success: true, name: cursor.name, description: cursor.description, category: cursor.category, price: cursor.price, picUrl: cursor.picUrl})
-    }
+    },
+    getAllMenuItems: async (req, res) => {
+        var cursor = await MenuItem.find()
+        if (!cursor) {
+            return res.json({success: false, msg: "No Items Found"})
+        }
+        return res.json({success: true, items: cursor})
+    },
 
  
 }

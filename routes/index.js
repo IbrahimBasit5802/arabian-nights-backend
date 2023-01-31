@@ -1,4 +1,5 @@
 const express = require('express')
+const { route } = require('express/lib/router')
 
 const actions =  require('../methods/actions')
 
@@ -26,6 +27,8 @@ router.get('/getinfo', actions.getinfo)
 //adding floor
 router.post('/addfloor', actions.addFloor)
 
+router.post('/addmenuitem', actions.addMenuItem)
+
 // get a specific floor info
 
 router.get('/getfloorinfo', actions.getFloorInfo)
@@ -34,5 +37,11 @@ router.get('/getfloorinfo', actions.getFloorInfo)
 
 router.get('/getusertype', actions.getUserType)
 
+router.get('/getallusers', actions.getAllUsers)
+
+router.get('/getallfloors', actions.getAllFloors)
+
+router.get('/getmenuitem', actions.getMenuItem)
+router.get('/getallmenuitems', actions.getAllMenuItems)
 
 module.exports = router
