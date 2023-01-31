@@ -13,14 +13,17 @@ const { json } = require('body-parser')
 
 
 var functions = {
+    // adds new user to the mongo db database
     addNew: async (req, res) => {
 
-
+        // required fields validation
         if ((!req.body.name) || (!req.body.password) || (!req.body.email) || (!req.body.phone) || (!req.body.userType)) {
-            res.json({success: false, msg: "Enter the required fields"})
+            return res.json({success: false, msg: "Enter the required fields"})
         }
         else {
+            // check if email already exsts in the database
             let em =  await User.findOne({ email: req.body.email })
+            // check if phone number already exists in the database
             let ph = await User.findOne({phone: req.body.phone})
     
             if (em) {
@@ -31,8 +34,10 @@ var functions = {
                 res.json({success: false, msg: "Phone Number already exists"})
                 return
             }
+            // email validation
             var checkEmail = await emailValidator.validate(req.body.email)
             var reason = ''
+            
             if (!checkEmail['valid']) {
                 if (checkEmail['reason'] == 'disposable') {
                     reason = checkEmail['validators']['disposable']['reason']
@@ -52,8 +57,8 @@ var functions = {
                 else {
                     reason = "Invalid Email"
                 }
-                res.json({success: false, msg: reason})
-                return
+                return res.json({success: false, msg: reason})
+                
             }
             var newUser = User({
                 name: req.body.name,
@@ -64,10 +69,10 @@ var functions = {
             });
             newUser.save(function (e, newUser) {
                 if (e) {
-                    res.json({success: false, msg: "Failed to save"})
+                    return res.json({success: false, msg: "Failed to register user"})
                 }
                 else {
-                    res.json({success: true, msg: "Successfully Saved"})
+                    return res.json({success: true, msg: "Sign Up Successful"})
                 }
             })
         }
@@ -130,10 +135,10 @@ var functions = {
             });
             newFloor.save(function (e, newFloor) {
                 if (e) {
-                    res.json({success: false, msg: "Failed to save"})
+                    res.json({success: false, msg: "Failed to add floor"})
                 }
                 else {
-                    res.json({success: true, msg: "Successfully Saved"})
+                    res.json({success: true, msg: "Floor has been created"})
                 }
             })
         }
@@ -172,7 +177,7 @@ var functions = {
     getAllFloors: async (req, res) => {
         var fl = await Floor.find()
         if (!fl) {
-            return res.json({success: false, msg: "No Floors"})
+            return res.json({success: false, msg: "No Floors Found"})
         } 
 
         return res.json({success: true, floors: fl})
@@ -192,10 +197,10 @@ var functions = {
         })
         newItem.save(function (e, newItem) {
             if (e) {
-                return res.json({success: false, msg: "Failed to save"})
+                return res.json({success: false, msg: "Failed to add menu item"})
             }
             else {
-                return res.json({success: true, msg: "Successfully Saved"})
+                return res.json({success: true, msg: "Successfully Added Menu Item"})
             }
         })
     },
