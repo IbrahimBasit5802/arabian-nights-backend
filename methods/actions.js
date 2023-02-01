@@ -5,11 +5,6 @@ var jwt = require('jwt-simple')
 var config = require('../config/dbconfig')
 var emailValidator = require('deep-email-validator')
 const { json } = require('body-parser')
-//const JWTT = require("jsonwebtoken");
-// const Token = require("../models/Token.model");
-// const sendEmail = require("../utils/email/sendEmail");
-// const crypto = require("crypto");
-// const bcrypt = require("bcrypt");
 
 
 var functions = {
