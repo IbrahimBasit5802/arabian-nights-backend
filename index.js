@@ -9,6 +9,7 @@ const passport = require('passport')
 const bodyParser = require('body-parser')
 
 const routes = require('./routes/index')
+const { db } = require('./models/user')
 
 connectDB()
 

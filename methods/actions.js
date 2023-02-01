@@ -7,6 +7,7 @@ var emailValidator = require('deep-email-validator')
 const { json } = require('body-parser')
 
 
+
 var functions = {
     // adds new user to the mongo db database
     addNew: async (req, res) => {
