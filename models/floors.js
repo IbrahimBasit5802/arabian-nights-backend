@@ -1,19 +1,41 @@
 var mongoose = require('mongoose')
-
 var Schema = mongoose.Schema;
 
+
+var tableSchema = new Schema(
+    {
+        tableNumber: {
+            type: Number,
+            require: true,
+            unique: true
+        },
+        tableStatus: {
+            // Reserved, Occupied, Available
+            type:String,
+            require: true
+        }
+
+    }
+)
 
 var floorSchema = new Schema(
     {
         floorNum: {
-            type: String,
+            type: Number,
             require: true,
             unique: true
         },
         numTables: {
-            type: String,
-            require: true
-        }
+            type: Number,
+            require: false
+        },
+
+        tables: 
+            
+      {
+        type: [tableSchema],
+      }
+        
     }
 )
 

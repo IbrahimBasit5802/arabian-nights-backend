@@ -43,5 +43,5 @@ router.get('/getallfloors', actions.getAllFloors)
 
 router.get('/getmenuitem', actions.getMenuItem)
 router.get('/getallmenuitems', actions.getAllMenuItems)
-
+router.post('/addtable', actions.addTable)
 module.exports = router

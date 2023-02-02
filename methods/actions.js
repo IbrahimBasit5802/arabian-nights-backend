@@ -116,7 +116,7 @@ var functions = {
 
     addFloor: async (req, res) => {
 
-        if ((!req.body.floorNum) || (!req.body.numTables)) {
+        if ((!req.body.floorNum)) {
             res.json({success: false, msg: "Enter the required fields"})
         }
         else {
@@ -127,7 +127,7 @@ var functions = {
             }
             var newFloor = Floor({
                 floorNum: req.body.floorNum,
-                numTables: req.body.numTables
+                numTables: 0,
             });
             newFloor.save(function (e, newFloor) {
                 if (e) {
@@ -217,6 +217,24 @@ var functions = {
         }
         return res.json({success: true, items: cursor})
     },
+
+    addTable: async (req, res) => {
+        if (!req.body.floorNum || !req.body.tableNumber) {
+            return res.json({success: false, msg: "Enter the required fields"})
+        }
+        Floor.updateOne({floorNum: req.body.floorNum}, {$inc: {numTables: 1}, $push: {"tables": {
+            tableNumber: req.body.tableNumber,
+            tableStatus: "Available"
+        }}}, function (e) {
+            if (e) {
+                return res.json({success: false, msg: e.toString()})
+            }
+            else {
+                return res.json({success: true, msg: "Successfully Added Table"})
+            }
+        });
+    },
+
 
  
 }
