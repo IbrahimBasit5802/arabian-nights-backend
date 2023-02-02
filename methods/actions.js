@@ -5,6 +5,7 @@ var jwt = require('jwt-simple')
 var config = require('../config/dbconfig')
 var emailValidator = require('deep-email-validator')
 const { json } = require('body-parser')
+const { parse } = require('handlebars')
 
 
 
@@ -115,18 +116,16 @@ var functions = {
     },
 
     addFloor: async (req, res) => {
+        var count = await Floor.countDocuments({})
 
-        if ((!req.body.floorNum)) {
-            res.json({success: false, msg: "Enter the required fields"})
-        }
-        else {
-            let fl =  await Floor.findOne({ floorNum: req.body.floorNum })
+      
+            let fl =  await Floor.findOne({ floorNum: count+ 1 })
             if (fl) {
                 res.json({success: false, msg: "Floor already exists"})
                 return
             }
             var newFloor = Floor({
-                floorNum: req.body.floorNum,
+                floorNum: count + 1,
                 numTables: 0,
             });
             newFloor.save(function (e, newFloor) {
@@ -137,7 +136,7 @@ var functions = {
                     res.json({success: true, msg: "Floor has been created"})
                 }
             })
-        }
+        
     },
 
     getUserType: async (req, res) => {
@@ -222,7 +221,7 @@ var functions = {
         if (!req.body.floorNum || !req.body.tableNumber) {
             return res.json({success: false, msg: "Enter the required fields"})
         }
-        Floor.updateOne({floorNum: req.body.floorNum}, {$inc: {numTables: 1}, $push: {"tables": {
+        await Floor.updateOne({floorNum: req.body.floorNum}, {$inc: {numTables: 1}, $push: {"tables": {
             tableNumber: req.body.tableNumber,
             tableStatus: "Available"
         }}}, function (e) {

@@ -22,7 +22,7 @@ var floorSchema = new Schema(
     {
         floorNum: {
             type: Number,
-            require: true,
+            require: false,
             unique: true
         },
         numTables: {
