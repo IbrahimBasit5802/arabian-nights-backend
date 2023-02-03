@@ -119,16 +119,16 @@ var functions = {
         var count = await Floor.countDocuments({})
 
       
-            let fl =  await Floor.findOne({ floorNum: count+ 1 })
+            let fl =  await Floor.findOne({ floorNum: count + 1 })
             if (fl) {
                 res.json({success: false, msg: "Floor already exists"})
                 return
             }
-            var newFloor = Floor({
+            let newFloor = Floor({
                 floorNum: count + 1,
                 numTables: 0,
             });
-            newFloor.save(function (e, newFloor) {
+            newFloor.save(function (e) {
                 if (e) {
                     res.json({success: false, msg: "Failed to add floor"})
                 }
@@ -207,7 +207,7 @@ var functions = {
             return res.json({success: false, msg: "Item not Found"})
         }
 
-        return res.json({success: true, name: cursor.name, description: cursor.description, category: cursor.category, price: cursor.price, picUrl: cursor.picUrl})
+        return res.json({success: true, _id: cursor._id, name: cursor.name, description: cursor.description, category: cursor.category, price: cursor.price, picUrl: cursor.picUrl})
     },
     getAllMenuItems: async (req, res) => {
         var cursor = await MenuItem.find()
@@ -226,12 +226,85 @@ var functions = {
             tableStatus: "Available"
         }}}, function (e) {
             if (e) {
-                return res.json({success: false, msg: e.toString()})
+                return res.json({success: false, msg: "Failed to add table"})
             }
             else {
                 return res.json({success: true, msg: "Successfully Added Table"})
             }
         });
+    },
+
+    updateItemName: async (req, res) => {
+        if (!req.body._id || !req.body.newName) {
+            return res.json({success: false, msg: "Enter the required fields"})
+        }
+        MenuItem.updateOne({_id: req.body._id}, {name: req.body.newName}, function (e) {
+            if (e) {
+                return res.json({success: false, msg: "Failed to update item name"})
+            }
+            else {
+                return res.json({success: true, msg: "Successfully Updated Item Name"})
+            }
+        })
+    },
+
+    updateItemDescription: async (req, res) => {
+        if (!req.body._id || !req.body.newDescription) {
+            return res.json({success: false, msg: "Enter the required fields"})
+        }
+        MenuItem.updateOne({_id: req.body._id}, {description: req.body.newDescription}, function (e) {
+            if (e) {
+                return res.json({success: false, msg: "Failed to update item description"})
+            }
+            else {
+                return res.json({success: true, msg: "Successfully Updated Item Description"})
+            }
+        })
+    },
+
+    updateItemCategory: async (req, res) => {
+        if(!req.body._id || !req.body.newCategory) {
+            return res.json({success: false, msg: "Enter the required fields"})
+        }
+        MenuItem.updateOne({_id: req.body._id}, {category: req.body.newCategory}, function (e) {
+            if (e) {
+                return res.json({success: false, msg: "Failed to update item category"})
+            }
+            else {
+                return res.json({success: true, msg: "Successfully Updated Item Category"})
+            }
+        })
+
+    },
+
+    updateItemPrice: async (req, res) => {
+        if(!req.body._id || !req.body.newPrice) {
+            return res.json({success: false, msg: "Enter the required fields"})
+        }
+
+        MenuItem.updateOne({_id: req.body._id}, {price: req.body.newPrice}, function (e) {
+            if (e) {
+                return res.json({success: false, msg: "Failed to update item price"})
+            }
+            else {
+                return res.json({success: true, msg: "Successfully Updated Item Price"})
+            }
+        })
+    },
+
+    updateItemImage: async (req, res) => {
+        if(!req.body._id || !req.body.newPicUrl) {
+            return res.json({success: false, msg: "Enter the required fields"})
+        }
+
+        MenuItem.updateOne({_id: req.body._id}, {picUrl: req.body.newPicUrl}, function (e) {
+            if (e) {
+                return res.json({success: false, msg: "Failed to update item picture"})
+            }
+            else {
+                return res.json({success: true, msg: "Successfully Updated Item Picture"})
+            }
+        })
     },
 
 
