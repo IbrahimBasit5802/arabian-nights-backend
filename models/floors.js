@@ -27,7 +27,8 @@ var floorSchema = new Schema(
         },
         numTables: {
             type: Number,
-            require: false
+            require: false,
+            unique: false
         },
 
         tables: 

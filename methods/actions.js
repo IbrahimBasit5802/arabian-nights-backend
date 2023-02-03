@@ -118,19 +118,20 @@ var functions = {
     addFloor: async (req, res) => {
         var count = await Floor.countDocuments({})
 
-      
-            let fl =  await Floor.findOne({ floorNum: count + 1 })
+        console.log(count)
+        count += 1
+            let fl =  await Floor.findOne({ floorNum: count })
             if (fl) {
                 res.json({success: false, msg: "Floor already exists"})
                 return
             }
             let newFloor = Floor({
-                floorNum: count + 1,
+                floorNum: count,
                 numTables: 0,
             });
             newFloor.save(function (e) {
                 if (e) {
-                    res.json({success: false, msg: "Failed to add floor"})
+                    res.json({success: false, msg: e.toString()})
                 }
                 else {
                     res.json({success: true, msg: "Floor has been created"})
@@ -218,15 +219,20 @@ var functions = {
     },
 
     addTable: async (req, res) => {
-        if (!req.body.floorNum || !req.body.tableNumber) {
+        if (!req.body.floorNum) {
             return res.json({success: false, msg: "Enter the required fields"})
         }
-        await Floor.updateOne({floorNum: req.body.floorNum}, {$inc: {numTables: 1}, $push: {"tables": {
-            tableNumber: req.body.tableNumber,
+        var tmpFloor = await Floor.findOne({floorNum: req.body.floorNum})
+        if (!tmpFloor) {
+            return res.json({success: false, msg: "Floor Doesn't Exist"})
+        }
+        var table_arr = tmpFloor.tables
+        Floor.updateOne({floorNum: req.body.floorNum}, {$inc: {numTables: 1}, $push: {"tables": {
+            tableNumber: table_arr.length + 1,
             tableStatus: "Available"
         }}}, function (e) {
             if (e) {
-                return res.json({success: false, msg: "Failed to add table"})
+                return res.json({success: false, msg: e.toString()})
             }
             else {
                 return res.json({success: true, msg: "Successfully Added Table"})
