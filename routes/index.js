@@ -38,9 +38,9 @@ router.post('/updatetables', actions.updateNumTables);
 router.post('/deletemenuitem', actions.deleteMenuItem);
 router.post('/updatemenuitem', actions.updateMenuItem);
 router.get('/getusertype', actions.getUserType)
-
+router.get('/getuser', actions.getUser)
 router.get('/getallusers', actions.getAllUsers)
-
+router.post('/deleteuser', actions.deleteUser)
 router.get('/getallfloors', actions.getAllFloors)
 router.post('/deletecategory', actions.deleteCategory)
 router.get('/getcategory', actions.getCategory)

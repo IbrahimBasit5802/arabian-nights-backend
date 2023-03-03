@@ -173,6 +173,7 @@ var functions = {
     },
 
     getAllUsers: async (req, res) => {
+
         var cursor = await User.find();
         if (!cursor) {
             return res.json({success: false, msg: "No Users Found"})
@@ -188,6 +189,33 @@ var functions = {
         } 
 
         return res.json({success: true, floors: fl})
+    },
+
+    getUser: async (req, res) => {
+        if (!req.body.email) {
+            return res.json({success: false, msg: "Enter the required fields"})
+        }
+
+        var tmp = User.findOne({email: req.body.email})
+        if (!tmp) {
+            return res.json({success: false, msg: "User not Found"})
+        }
+        return res.json({success: true, name: tmp.name, email: tmp.email, phone: tmp.phone, userType: tmp.userType})
+    },
+
+    deleteUser: async (req, res) => {
+        if (!req.body.email) {
+            return res.json({success: false, msg: "Enter the required fields"})
+        }
+
+        User.deleteOne({email: req.body.email}, function(e) {
+            if (e) {
+                return res.json({success: false, msg: e.toString()})
+            }
+            else {
+                return res.json({success: true, msg: "User Deleted"})
+            }
+        })
     },
 
     createCategory: async (req, res) => {
@@ -297,7 +325,16 @@ var functions = {
         // delete old item:
 
         try {
-            Category.updateOne({categoryName: req.body.categoryName}, {$pull: {items: {name: req.body.oldName}}},  {$push: {"items": {
+            Category.updateOne({categoryName: req.body.categoryName}, {$pull: {items: {name: req.body.oldName}}},  function (e) {
+                if (e) {
+                    return res.json({success: false, msg: e.toString()})
+                }
+                else {
+                    return res.json({success: true, msg: "Successfully Deleted Item"})
+                }
+            })
+
+            Category.updateOne({categoryName: req.body.categoryName},  {$push: {"items": {
                 name: req.body.name,
                 price: req.body.price,
                 picUrl: req.body.picUrl,
