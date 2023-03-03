@@ -18,8 +18,8 @@ var userSchema = new Schema({
     },
     phone: {
         type: String,
-        require: true,
-        unique: true
+     
+
     },
     password: {
         type: String,
@@ -29,7 +29,7 @@ var userSchema = new Schema({
     // Manager Option Can't be selected by employees frontend, only added manually
     userType: {
         type: String,
-        require: true
+        defsult: ''
     }
 
     

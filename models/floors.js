@@ -2,21 +2,7 @@ var mongoose = require('mongoose')
 var Schema = mongoose.Schema;
 
 
-var tableSchema = new Schema(
-    {
-        tableNumber: {
-            type: Number,
-            require: true,
-            unique: true
-        },
-        tableStatus: {
-            // Reserved, Occupied, Available
-            type:String,
-            require: true
-        }
 
-    }
-)
 
 var floorSchema = new Schema(
     {
@@ -30,13 +16,9 @@ var floorSchema = new Schema(
             require: false,
             unique: false
         },
-
-        tables: 
-            
-      {
-        type: [tableSchema],
-      }
         
+
+
     }
 )
 

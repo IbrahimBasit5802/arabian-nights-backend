@@ -8,16 +8,9 @@ var menuItemSchema = new Schema({
         type: String,
         require: true
     },
-    description: {
-        type: String,
-        require: true
-    },
-    category: {
-        type: String,
-        require: true
-    },
+
     price: {
-        type: String,
+        type: Number,
         require: true
     },
     picUrl: {
@@ -25,9 +18,19 @@ var menuItemSchema = new Schema({
     }
 })
 
-menuItemSchema.pre('save', function(next) {
-    var floor = this;
+var categorySchema = new Schema({
+    categoryName: {
+        type: String,
+        require: true
+    },
+    numItems: {
+        type: Number,
+    },
+    items: [menuItemSchema]
+})
+
+categorySchema.pre('save', function(next) {
     return next()
 })
 
-module.exports = mongoose.model('MenuItem', menuItemSchema)
+module.exports = mongoose.model('Category', categorySchema)

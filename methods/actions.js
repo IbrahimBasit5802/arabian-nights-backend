@@ -1,6 +1,6 @@
 var User = require('../models/user')
 var Floor = require('../models/floors')
-var MenuItem = require('../models/menu_item')
+var Category = require('../models/menu_item')
 var jwt = require('jwt-simple')
 var config = require('../config/dbconfig')
 var emailValidator = require('deep-email-validator')
@@ -14,7 +14,7 @@ var functions = {
     addNew: async (req, res) => {
 
         // required fields validation
-        if ((!req.body.name) || (!req.body.password) || (!req.body.email) || (!req.body.phone) || (!req.body.userType)) {
+        if ((!req.body.name) || (!req.body.password) || (!req.body.email)) {
             return res.json({success: false, msg: "Enter the required fields"})
         }
         else {
@@ -27,10 +27,7 @@ var functions = {
                 res.json({success: false, msg: "Email already exists"})
                 return
             }
-            else if(ph) {
-                res.json({success: false, msg: "Phone Number already exists"})
-                return
-            }
+
             // email validation
             var checkEmail = await emailValidator.validate(req.body.email)
             var reason = ''
@@ -61,8 +58,8 @@ var functions = {
                 name: req.body.name,
                 password: req.body.password,
                 email: req.body.email,
-                phone: req.body.phone,
-                userType: req.body.userType
+
+                
             });
             newUser.save(function (e, newUser) {
                 if (e) {
@@ -85,7 +82,7 @@ var functions = {
                 }
                 if (!user) {
 
-                    return res.status(403).send({success: false, msg: "User not found"})
+                    return res.json({success: false, msg: "User not found"})
                 }
                 else {
 
@@ -96,7 +93,7 @@ var functions = {
                             return res.json({success: true, token: token})
                         }
                         else {
-                            return res.status(403).send({success: false, msg: "Incorrect Password"})
+                            return res.json({success: false, msg: "Incorrect Password"})
                         }
                     })
                 }
@@ -118,8 +115,7 @@ var functions = {
     addFloor: async (req, res) => {
         var count = await Floor.countDocuments({})
 
-        console.log(count)
-        count += 1
+        
             let fl =  await Floor.findOne({ floorNum: count })
             if (fl) {
                 res.json({success: false, msg: "Floor already exists"})
@@ -161,6 +157,21 @@ var functions = {
 
     },
 
+    updateUserType: async (req, res) => {
+        if (!req.body.email || !req.body.userType) {
+            return res.json({success: false, msg: "Enter the required fields"})
+        }
+
+        User.updateOne({email: req.body.email}, {userType: req.body.userType}, function(e) {
+            if (e) {
+                return res.json({success: false, msg: e.toString()})
+            }
+            else {
+                return res.json({success: true, msg: "User Type Updated"})
+            }
+        })
+    },
+
     getAllUsers: async (req, res) => {
         var cursor = await User.find();
         if (!cursor) {
@@ -179,44 +190,135 @@ var functions = {
         return res.json({success: true, floors: fl})
     },
 
-    addMenuItem: async (req, res) => {
-        if (!req.body.name || !req.body.description || !req.body.category || !req.body.price) {
+    createCategory: async (req, res) => {
+        if (!req.body.categoryName) {
             return res.json({success: false, msg: "Enter the required fields"})
         }
 
-        var newItem = MenuItem({
-            name: req.body.name,
-            description: req.body.description,
-            category: req.body.category,
-            price: req.body.price,
-            picUrl: req.body.picUrl
+        var newItem = Category({
+            categoryName: req.body.categoryName,
+            numItems: 0,
+            
         })
         newItem.save(function (e, newItem) {
             if (e) {
-                return res.json({success: false, msg: "Failed to add menu item"})
+                return res.json({success: false, msg: "Failed to add category"})
             }
             else {
-                return res.json({success: true, msg: "Successfully Added Menu Item"})
+                return res.json({success: true, msg: "Successfully Added category"})
             }
         })
     },
 
-    getMenuItem: async (req, res) => {
+    getCategory: async (req, res) => {
 
-        var cursor = await MenuItem.findOne({name: req.body.name})
+        var cursor = await Category.findOne({categoryName: req.body.categoryName})
         if (!cursor) {
-            return res.json({success: false, msg: "Item not Found"})
+            return res.json({success: false, msg: "Category not Found"})
         }
 
-        return res.json({success: true, _id: cursor._id, name: cursor.name, description: cursor.description, category: cursor.category, price: cursor.price, picUrl: cursor.picUrl})
+        return res.json({success: true, _id: cursor._id, categoryName: cursor.categoryName, items: cursor.items, numItems: cursor.numItems})
     },
-    getAllMenuItems: async (req, res) => {
-        var cursor = await MenuItem.find()
-        if (!cursor) {
-            return res.json({success: false, msg: "No Items Found"})
+    deleteCategory: async (req, res) => {
+        if (!req.body.categoryName) {
+            return res.json({success: false, msg: "Enter the required fields"})
         }
-        return res.json({success: true, items: cursor})
+        Category.deleteOne({categoryName: req.body.categoryName}, function(e) {
+            if (e) {
+                return res.json({success: false, msg: e.toString()})
+            }
+            else {
+                return res.json({success: true, msg: "Category Deleted"})
+            }
+        })
     },
+    getAllCategories: async (req, res) => {
+        var cursor = await Category.find()
+        if (!cursor) {
+            return res.json({success: false, msg: "No Category Found"})
+        }
+        return res.json({success: true, categories: cursor})
+    },
+
+    addMenuItem: async (req, res) => {
+        if (!req.body.categoryName || !req.body.name || !req.body.price) {
+            return res.json({success: false, msg: "Enter the required fields"})
+        }
+
+        var tmpCat = await Category.findOne({categoryName: req.body.categoryName})
+        if (!tmpCat) {
+            return res.json({success: false, msg: "Category Doesn't Exist"})
+        }
+
+        var item_arr = tmpCat.items
+        Category.updateOne({categoryName: req.body.categoryName}, {$push: {"items": {
+            name: req.body.name,
+            price: req.body.price,
+            picUrl: req.body.picUrl,
+            
+        }}, numItems: item_arr.length + 1}, function (e) {
+            if (e) {
+                return res.json({success: false, msg: e.toString()})
+            }
+            else {
+                return res.json({success: true, msg: "Successfully Added Item"})
+            }
+        });
+
+    },
+
+    deleteMenuItem: async (req, res) => {
+        try {
+            Category.updateOne({categoryName: req.body.categoryName}, {$pull: {items: {name: req.body.name}}}, function (e) {
+                if (e) {
+                    return res.json({success: false, msg: e.toString()})
+                }
+                else {
+                    return res.json({success: true, msg: "Successfully Deleted Item"})
+                }
+            })
+            Category.updateOne({categoryName: req.body.categoryName}, {$inc: {numItems: -1}}, function (e) {
+                if (e) {
+                    return res.json({success: false, msg: e.toString()})
+                }
+            }
+            )
+        } catch (error) {
+            res.json(error)
+        }
+
+        
+  
+    },
+
+    updateMenuItem: async (req, res) => {
+
+
+        // delete old item:
+
+        try {
+            Category.updateOne({categoryName: req.body.categoryName}, {$pull: {items: {name: req.body.oldName}}},  {$push: {"items": {
+                name: req.body.name,
+                price: req.body.price,
+                picUrl: req.body.picUrl,
+                
+            }}},  function (e) {
+                if (e) {
+                    return res.json({success: false, msg: e.toString()})
+                }
+                else {
+                    return res.json({success: true, msg: "Successfully Deleted Item"})
+                }
+            })
+
+        } catch (error) {
+            res.json(error)
+        }
+
+
+    },
+
+
 
     addTable: async (req, res) => {
         if (!req.body.floorNum) {
@@ -312,6 +414,42 @@ var functions = {
             }
         })
     },
+
+    getTotalFloors: async (req, res) => {
+        var cursor = await Floor.find()
+        if (!cursor) {
+            return res.json({success: false, msg: "No Floors Found"})
+        }
+        return res.json({success: true, numFloors: cursor.length})
+    },
+
+    updateNumTables: async (req, res) => {
+        Floor.updateOne({floorNum: req.body.floorNum}, {numTables: req.body.numTables}, function (e) {
+            if (e) {
+                return res.json({success: false, msg: "Failed to update number of tables"})
+            }
+            else {
+                return res.json({success: true, msg: "Successfully Updated Number of Tables"})
+            }
+        })
+    },
+
+    deleteLatestFloor: async (req, res) => {
+        var toDelete = await Floor.findOne().sort('-_id')
+        console.log(toDelete.floorNum)
+        Floor.deleteOne({_id: toDelete._id}, function (e) {
+            if (e) {
+                return res.json({success: false, msg: "Failed to delete floor"})
+            }
+            else {
+                return res.json({success: true, msg: "Successfully Deleted Floor"})
+            }
+        })
+    }
+    
+
+
+
 
 
  
