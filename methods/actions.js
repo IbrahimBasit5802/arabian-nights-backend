@@ -157,6 +157,22 @@ var functions = {
 
     },
 
+    updateUser: async (req, res) => {
+        if (!req.body._id || !req.body.name || !req.body.email) {
+            return res.json({success: false, msg: "Enter the required fields"})
+        }
+
+        User.updateOne({_id: req.body._id}, {name: req.body.name, email: req.body.email, phone: req.body.phone, userType: req.body.role}, function(e) {
+            if (e) {
+                return res.json({success: false, msg: e.toString()})
+            }
+            else {
+                return res.json({success: true, msg: "User Updated"})
+            }
+        })
+        
+    },
+
     updateUserType: async (req, res) => {
         if (!req.body.email || !req.body.userType) {
             return res.json({success: false, msg: "Enter the required fields"})
@@ -200,7 +216,7 @@ var functions = {
         if (!tmp) {
             return res.json({success: false, msg: "User not Found"})
         }
-        return res.json({success: true, name: tmp.name, email: tmp.email, phone: tmp.phone, userType: tmp.userType})
+        return res.json({success: true, _id: tmp._id, name: tmp.name, email: tmp.email, phone: tmp.phone, userType: tmp.userType})
     },
 
     deleteUser: async (req, res) => {
