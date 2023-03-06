@@ -1,6 +1,9 @@
 var User = require('../models/user')
 var Floor = require('../models/floors')
 var Category = require('../models/menu_item')
+var Order = require('../models/order')
+var InvoiceDetails = require('../models/arabian_nights_invoice_details')
+var Invoice = require('../models/invoice')
 var jwt = require('jwt-simple')
 var config = require('../config/dbconfig')
 var emailValidator = require('deep-email-validator')
@@ -105,7 +108,7 @@ var functions = {
             var token = req.headers.authorization.split(' ')[1]
             var decodedToken = jwt.decode(token, config.secret)
 
-            return res.json({success: true, name: decodedToken.name, email: decodedToken.email, phone: decodedToken.phone, userType: decodedToken.userType})
+            return res.json({success: true, _id: decodedToken._id, name: decodedToken.name, email: decodedToken.email, phone: decodedToken.phone, userType: decodedToken.userType})
         }
         else {
             return res.json({success: false, msg: "No Headers"})
@@ -174,11 +177,11 @@ var functions = {
     },
 
     updateUserType: async (req, res) => {
-        if (!req.body.email || !req.body.userType) {
+        if (!req.body._id || !req.body.userType) {
             return res.json({success: false, msg: "Enter the required fields"})
         }
 
-        User.updateOne({email: req.body.email}, {userType: req.body.userType}, function(e) {
+        User.updateOne({_id: req.body._id}, {userType: req.body.userType}, function(e) {
             if (e) {
                 return res.json({success: false, msg: e.toString()})
             }
@@ -212,7 +215,8 @@ var functions = {
             return res.json({success: false, msg: "Enter the required fields"})
         }
 
-        var tmp = User.findOne({email: req.body.email})
+        var tmp = await User.findOne({email: req.body.email})
+        console.log(User)
         if (!tmp) {
             return res.json({success: false, msg: "User not Found"})
         }
@@ -335,7 +339,7 @@ var functions = {
   
     },
 
-    updateMenuItem: async (req, res) => {
+    updateMenuItemPull: async (req, res) => {
 
 
         // delete old item:
@@ -349,6 +353,18 @@ var functions = {
                     return res.json({success: true, msg: "Successfully Deleted Item"})
                 }
             })
+
+
+
+        } catch (error) {
+            res.json(error)
+        }
+
+
+    },
+
+    updateMenuItemPush: async (req, res) => {
+        try {
 
             Category.updateOne({categoryName: req.body.categoryName},  {$push: {"items": {
                 name: req.body.name,
@@ -364,12 +380,12 @@ var functions = {
                 }
             })
 
-        } catch (error) {
-            res.json(error)
+        } catch(e) {
+            return res.json({success: false, msg: e.toString()})
         }
-
-
     },
+
+
 
 
 
@@ -498,8 +514,196 @@ var functions = {
                 return res.json({success: true, msg: "Successfully Deleted Floor"})
             }
         })
-    }
+    },
+
+    createOrder: async (req, res) => {
+
+
+        var order = Order(
+            {
+                tableNum: req.body.tableNum,
+                floorNum: req.body.floorNum,
+                orderStatus: "Pending",
+                extras: req.body.extras,
+            }
+        )
+
+        order.save( function (e, order) {
+            if (e) {
+                return res.json({success: false, msg: "Failed to create order"})
+            }
+            else {
+                return res.json({success: true, msg: "Successfully Created Order"})
+            }
+        })
+    },
+
+    addItemToOrder: async (req, res) => {
+
+
+        Order.updateOne({floorNum: req.body.floorNum, tableNum: req.body.tableNum}, {$push: {"menuOrderItems": {
+            itemName: req.body.itemName,
+            rate: req.body.rate,
+            quantity: req.body.quantity,
+            ready: req.body.ready
+           
+        }}}, function (e) {
+            if (e) {
+                return res.json({success: false, msg: "Failed to add item to order"})
+            }
+            else {
+                return res.json({success: true, msg: "Successfully Added Item to Order"})
+            }
+        })
+    },
+
+    removeItemFromOrder: async (req, res) => {
+        
+        Order.updateOne({floorNum: req.body.floorNum, tableNum: req.body.tableNum}, {$pull: {"menuOrderItems": {
+            itemName: req.body.itemName,
+        }}}, function (e) {
+            if (e) {
+                return res.json({success: false, msg: "Failed to remove item from order"})
+            }
+            else {
+                return res.json({success: true, msg: "Successfully Removed Item from Order"})
+            }
+        })
     
+    },
+
+    checkIfOrderExists: async (req, res) => {
+     Order.findOne({floorNum: req.body.floorNum, tableNum: req.body.tableNum}, function (e, order) {
+            if (e) {
+                return res.json({success: false, msg: "Failed to check if order exists"})
+            }
+            else {
+                if (!order) {
+                    return res.json({success: false, msg: "Order does not exist"})
+                }
+                else {
+                    return res.json({success: true, msg: "Order exists"})
+                }
+            }
+        })
+    },
+
+    resetOrderItems: async (req, res) => {
+        Order.updateOne({floorNum: req.body.floorNum, tableNum: req.body.tableNum}, {menuOrderItems: []}, function (e) {
+            if (e) {
+                return res.json({success: false, msg: "Failed to reset order items"})
+            }
+            else {
+                return res.json({success: true, msg: "Successfully Reset Order Items"})
+            }
+        })
+    },
+
+    overWriteOrder: async (req, res) => {
+        
+        Order.updateOne({floorNum: req.body.floorNum, tableNum: req.body.tableNum}, {menuOrderItems: req.body.menuOrderItems}, function (e) {
+            if (e) {
+                return res.json({success: false, msg: "Failed to overwrite order"})
+            }
+            else {
+                return res.json({success: true, msg: "Successfully Overwrote Order"})
+            }
+        })
+    
+    },
+
+    getAllOrders: async (req, res) => {
+        
+        var cursor = await Order.find()
+        if (!cursor) {
+            return res.json({success: false, msg: "No Orders Found"})
+        }
+        return res.json({success: true, orders: cursor})
+    
+    },
+
+    getSpecificOrder: async (req, res) => {
+        var order = await Order.findOne({floorNum: req.body.floorNum, tableNum: req.body.tableNum});
+        if (!order) {
+            return res.json({success: false, msg: "No Orders Found"})
+        }
+        return res.json({success: true, order: order})
+    },
+
+    saveInvoiceDetails: async (req, res) => {
+
+        await InvoiceDetails.deleteOne();
+
+        var invoice = InvoiceDetails(
+            {
+                restaurantName: req.body.restaurantName,
+                address: req.body.address,
+                phone: req.body.phone,
+                email: req.body.email,
+                taxRate: req.body.taxRate,
+                taxID: req.body.taxID,
+                companyRegistrationNumber: req.body.companyRegistrationNumber,
+                foodLicenseNumber: req.body.foodLicenseNumber,
+                extraDetails: req.body.extraDetails,
+            }
+        )
+
+        invoice.save( function (e, invoice) {
+            if (e) {
+                return res.json({success: false, msg: "Failed to create invoice"})
+            }
+            else {
+                return res.json({success: true, msg: "Successfully Created Invoice"})
+            }
+        })
+    },
+
+    getInvoiceDetails: async (req, res) => {
+        var invoice = await InvoiceDetails.findOne();
+        if (!invoice) {
+            return res.json({success: false, msg: "No Invoice Found"})
+        }
+        return res.json({success: true, invoice: invoice})
+    },
+
+    generateInvoice: async (req, res) => {
+    
+        var invoice = Invoice(
+            {
+                floorNum: req.body.floorNum,
+                tableNum: req.body.tableNum,
+                dateOfOrder: req.body.dateOfOrder,
+                orderedItems: req.body.orderedItems,
+                payment_method: req.body.payment_method,
+                taxRate: req.body.taxRate,
+                invoiceID: req.body.invoiceID,
+        
+            })
+
+        
+
+        invoice.save( function (e, invoice) {
+            if (e) {
+                return res.json({success: false, msg: "Failed to generate invoice"})
+            }
+            else {
+                return res.json({success: true, msg: "Successfully Generated Invoice"})
+            }
+        })
+    },
+
+    deleteOrder: async (req, res) => {
+        Order.deleteOne({floorNum: req.body.floorNum, tableNum: req.body.tableNum}, function (e) {
+            if (e) {
+                return res.json({success: false, msg: "Failed to delete order"})
+            }
+            else {
+                return res.json({success: true, msg: "Successfully Deleted Order"})
+            }
+        })
+        
+    },
+
 
 
 

@@ -36,7 +36,8 @@ router.get('/gettotalfloors', actions.getTotalFloors);
 router.post('/updatetables', actions.updateNumTables);
 //
 router.post('/deletemenuitem', actions.deleteMenuItem);
-router.post('/updatemenuitem', actions.updateMenuItem);
+router.post('/updatemenuitempull', actions.updateMenuItemPull);
+router.post('/updatemenuitempush', actions.updateMenuItemPush);
 router.get('/getusertype', actions.getUserType)
 router.get('/getuser', actions.getUser)
 router.post('/updateuser', actions.updateUser)
@@ -53,4 +54,18 @@ router.post('/updateitemprice', actions.updateItemPrice)
 router.post('/updateitemdescription', actions.updateItemDescription)
 router.post('/updateitemimage', actions.updateItemImage)
 router.post('/updateitemcategory', actions.updateItemCategory)
+router.post('/updateusertype', actions.updateUserType)
+router.post('/createorder', actions.createOrder)
+router.post('/additemtoorder', actions.addItemToOrder)
+router.get('/getallorders', actions.getAllOrders)
+router.get('/getorder', actions.getSpecificOrder)
+router.post('/saveinvoicedetails', actions.saveInvoiceDetails)
+router.get('/getinvoicedetails', actions.getInvoiceDetails)
+router.post('/generateinvoice', actions.generateInvoice)
+router.post('/deleteorder', actions.deleteOrder)
+router.post('/deleteitemfromorder', actions.removeItemFromOrder)
+router.get('/checkorderexistence', actions.checkIfOrderExists)
+router.post('/overwriteorder', actions.overWriteOrder)
+router.post('/resetorderitems', actions.resetOrderItems)
+
 module.exports = router
