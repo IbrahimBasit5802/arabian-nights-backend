@@ -56,6 +56,11 @@ var invoiceSchema = new Schema(
         taxRate: {
             type: Number,
             require: true,
+        },
+
+        created: {
+            type: Date,
+            require: true,
         }
 
     }

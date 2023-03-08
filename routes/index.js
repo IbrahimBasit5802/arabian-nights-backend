@@ -67,5 +67,6 @@ router.post('/deleteitemfromorder', actions.removeItemFromOrder)
 router.get('/checkorderexistence', actions.checkIfOrderExists)
 router.post('/overwriteorder', actions.overWriteOrder)
 router.post('/resetorderitems', actions.resetOrderItems)
+router.get('/getinvoicesbydate', actions.getInvoicesByDateRange)
 
 module.exports = router

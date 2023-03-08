@@ -7,6 +7,8 @@ var Invoice = require('../models/invoice')
 var jwt = require('jwt-simple')
 var config = require('../config/dbconfig')
 var emailValidator = require('deep-email-validator')
+var moment = require('moment')
+
 const { json } = require('body-parser')
 const { parse } = require('handlebars')
 
@@ -677,6 +679,7 @@ var functions = {
                 payment_method: req.body.payment_method,
                 taxRate: req.body.taxRate,
                 invoiceID: req.body.invoiceID,
+                created: moment().format('YYYY-MM-DD')
         
             })
 
@@ -702,6 +705,16 @@ var functions = {
             }
         })
         
+    },
+
+    getInvoicesByDateRange: async (req, res) => {
+        
+        var invoice = await Invoice.find({created: {$gte: new Date(req.body.startDate), $lte: new Date(req.body.endDate)}})
+        
+        if (!invoice) {
+            return res.json({success: false, msg: "No Invoice Found"})
+        }
+        return res.json({success: true, invoice: invoice})
     },
 
 
