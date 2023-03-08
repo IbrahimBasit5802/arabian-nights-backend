@@ -717,6 +717,16 @@ var functions = {
         return res.json({success: true, invoice: invoice})
     },
 
+    getAllInvoices: async (req, res) => {
+            
+            var invoice = await Invoice.find()
+            
+            if (!invoice) {
+                return res.json({success: false, msg: "No Invoice Found"})
+            }
+            return res.json({success: true, invoice: invoice})
+        },
+
 
 
 
